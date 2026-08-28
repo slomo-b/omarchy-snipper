@@ -11,7 +11,7 @@
   },
   "barWidget": {
     "displayName": "Snipper",
-    "description": "Snipping tool with OCR: select a screen area, get its text (or image) copied to the clipboard. Weather-styled bar pill + panel.",
+    "description": "Snipping tool with OCR: select a screen area, get its text (or image) copied to the clipboard. A clean bar pill + panel.",
     "category": "Utility",
     "allowMultiple": false,
     "defaultSection": "center"

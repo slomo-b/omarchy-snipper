@@ -1,7 +1,7 @@
 # Snipper — Omarchy Bar Widget (screen snip + OCR)
 
 A fully standalone **Omarchy shell bar widget**: a small pill in the top bar
-(clicking it opens a weather-styled keyboard panel). The panel *is* the whole
+(clicking it opens a polished keyboard panel). The panel *is* the whole
 app — capture, OCR and clipboard run right there, no separate process.
 
 Pick a screen area → its **text (or image) is copied to the clipboard** via
@@ -28,8 +28,7 @@ local OCR (`tesseract`).
 - **Localized UI**: follows the system locale (`de*` → German, otherwise
   English). The call-to-action stays **"Snip it!"** in both.
 
-Designed after the first-party `omarchy.weather` plugin (bar widget +
-`KeyboardPanel` popup).
+Built on Omarchy's standard bar-widget + `KeyboardPanel` structure.
 
 ## Requirements (present on Omarchy)
 
@@ -45,8 +44,8 @@ Designed after the first-party `omarchy.weather` plugin (bar widget +
 omarchy plugin add https://github.com/slomo-b/omarchy-snipper.git --enable
 ```
 
-The marker is added to the **center** section (`defaultSection`), next to the
-weather pill. Move it with `omarchy bar move`.
+The marker is added to the **center** section (`defaultSection`). Move it with
+`omarchy bar move`.
 
 ## Keyboard shortcut (optional, host-specific)
 
