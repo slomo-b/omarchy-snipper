@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Simplified cuttermesser (box cutter): outer silhouette only, inner handle
+     detail removed. Filled WHITE so MultiEffect colorization can tint it to
+     the bar foreground at runtime (deeper/richer -> lighter colors). -->
+<svg fill="#FFFFFF" height="800px" width="800px" viewBox="-118 -118 561 561" xmlns="http://www.w3.org/2000/svg">
+  <path d="M320.764,100.597l-75.04-75.042c-2.731-2.729-6.388-4.233-10.296-4.233c-4.05,0-7.878,1.598-10.777,4.498L53.536,196.935
+    c-2.815,2.815-4.412,6.532-4.493,10.466c-0.084,4.029,1.419,7.797,4.232,10.607l10.969,10.969l-62.487,62.49
+    c-1.698,1.698-2.22,4.245-1.326,6.475c0.893,2.23,3.03,3.711,5.432,3.766l85.203,1.96c0.046,0.001,0.092,0.002,0.138,0.002
+    c1.59,0,3.116-0.631,4.242-1.758l20.866-20.866l12.002,12.002c2.73,2.731,6.388,4.235,10.297,4.235
+    c4.052,0,7.879-1.598,10.776-4.497l171.116-171.115C326.384,115.788,326.501,106.334,320.764,100.597z"/>
+</svg>
