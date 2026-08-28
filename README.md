@@ -89,6 +89,42 @@ omarchy-shell shell rescanPlugins
 - The plugin is self-contained on Omarchy; it does not run or require the
   Tauri app.
 
+## Security & trust
+
+Omarchy runs bar plugins as unsandboxed code inside the long-lived
+`omarchy-shell` process, with your user rights. That is how the platform works
+— a sandbox would remove the screen/clipboard/OCR access the tool needs. To
+make trusting this plugin easy, here is exactly what it does (so you can review
+before enabling):
+
+**External commands it runs — all local, no network:**
+- `grim` — capture the current screen
+- `convert` (ImageMagick) — crop the selected region
+- `tesseract` — OCR, runs on your machine (text never leaves it)
+- `wl-copy` — put text/image on the clipboard
+- Omarchy bins: `omarchy-capture-screenshot` (via the bar), `omarchy-clipboard-paste-text`, `omarchy-notification-send`
+
+**What it touches:**
+- Only files under `~/.local/state/snipper/` (history, a temp capture, a log).
+- No system directories, no `/etc`, no services, no autostart.
+
+**What it does NOT do:**
+- No network requests — no telemetry, no data leaves your machine.
+- No `sudo`, no system changes, no persistent installs.
+- It never reads your secrets, keys, or tokens.
+- OCR output and history text are shell-quoted / passed via stdin, so
+  recognized or pasted text cannot inject shell commands.
+
+**Review before enabling** (the whole plugin is ~5 small files):
+
+```bash
+git clone https://github.com/slomo-b/omarchy-snipper && ls
+```
+
+Releases are exact git tags (e.g. `v0.3.0`), so a reviewed version can be pulled
+and compared. This mirrors Omarchy's own guidance: inspect the few files, then
+run `omarchy plugin add`.
+
 ## License
 
 MIT. See `LICENSE`.
