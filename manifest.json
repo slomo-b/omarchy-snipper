@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.slomo-b.snipper",
   "name": "Snipper",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "slomo-b",
   "description": "Snipping tool with OCR — a bar pill that opens a keyboard panel to select a screen area and copy its text or image.",
   "kinds": ["bar-widget"],
