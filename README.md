@@ -47,6 +47,18 @@ omarchy plugin add https://github.com/slomo-b/omarchy-snipper.git --enable
 The marker is added to the **center** section (`defaultSection`). Move it with
 `omarchy bar move`.
 
+## Remove
+
+```bash
+omarchy plugin remove io.github.slomo-b.snipper
+```
+
+Removal removes the bar widget and its panel from the shell. The plugin keeps
+no system state: it only ever wrote temporary files under
+`~/.local/state/snipper/`, which it does not delete (history may be cleared
+from the panel; the leftover state directory can be removed by hand if you
+want it gone entirely).
+
 ## Keyboard shortcut (optional, host-specific)
 
 Like any bar widget, the pill toggles the panel on click. To open/toggle it
