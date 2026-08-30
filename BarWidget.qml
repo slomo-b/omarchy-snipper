@@ -1,6 +1,6 @@
 // Snipper — Omarchy bar pill. Mirrors the first-party weather bar-widget:
-// renders an icon/pill in the bar, and clicking it toggles a WLAN-style
-// popup (Panel.qml, a KeyboardPanel anchored to this button).
+// renders an icon/pill in the bar, and clicking it toggles a KeyboardPanel
+// popup (Panel.qml) anchored to this button.
 import QtQuick
 import QtQuick.Effects
 import qs.Commons
@@ -72,10 +72,10 @@ BarWidget {
     anchors.fill: parent
     bar: root.bar
     text: ""
-    // Cuttermesser als getoentes SVG statt Nerd-Font-Glyph. Das SVG ist WEISS
-    // gefuellt (wie symbolische Tray-Icons); per Image+MultiEffect wird es auf
-    // die Bar-Vordergrundfarbe getoent (foreground / activeColor). Der kleinere
-    // kleinere Icon als die opticalCanvas ~0.50 sorgt fuer optisches Padding/Groesse.
+    // Cuttermesser as a tinted SVG instead of a Nerd-Font glyph. The SVG fill is
+    // WHITE (like symbolic tray icons); Image + MultiEffect colorize it to the
+    // bar foreground (foreground / activeColor). Being smaller than the
+    // opticalCanvas (~0.50) adds the optical padding/size.
     iconComponent: Component {
       Item {
         width: parent.width * 0.34

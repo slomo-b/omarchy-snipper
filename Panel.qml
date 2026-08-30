@@ -1,13 +1,13 @@
-// Snipper — Omarchy-native App, die KOMPLETT in diesem Popup lebt.
+// Snipper — Omarchy-native app that lives entirely in this popup.
 //
-// Capture wird NATIV in QML geloest (kein slurp, dessen Input bei Hintergrund-
-// Prozessen unzuverlaessig ist):
-//   "Bereich auswaehlen":
-//     1. grim nimmt den kompletten Screen -> ~/.local/state/snipper/full.png
-//     2. eigenes Vollbild-Overlay zeigt das eingefrorene Bild, per Maus-Drag
-//        einen Bereich ziehen (Pointer in unserem Surface = zuverlaessig)
-//     3. Region via ImageMagick aus full.png schneiden -> tesseract -> Text in
-//        Zwischenablage -> Popup mit Ergebnis wieder oeffnen.
+// Capture is solved NATIVELY in QML (no slurp, whose input is unreliable for
+// background processes):
+//   "Select area":
+//     1. grim takes the whole screen -> ~/.local/state/snipper/full.png
+//     2. a full-screen overlay shows the frozen image; drag a box over the
+//        area (pointer in our surface = reliable)
+//     3. the region is cut from full.png via ImageMagick -> tesseract -> text
+//        to the clipboard -> reopen the popup with the result.
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -28,11 +28,11 @@ Panel {
   readonly property var barIdentity: hostWidget || root
 
   readonly property string label: "Snip"
-  // UI-Sprache nach System-Locale (de* -> Deutsch, sonst Englisch = Standard).
+  // UI language from the system locale (de* -> German, otherwise English = default).
   readonly property string uiLang: String(Qt.locale().name).toLowerCase().indexOf("de") === 0 ? "de" : "en"
-  // Schluessel -> Lokalisierung. Die App ist standardmaessig Englisch; nur bei
-  // deutscher Locale werden deutsche Texte angezeigt. "Snip it!" bleibt als
-  // Call-to-Action in beiden Sprachen identisch.
+  // Tag -> localized string. English is the default; German texts only render
+  // for a German locale. "Snip it!" stays identical as the call-to-action in
+  // both languages.
   function tr(tag) {
     var en = {
       ready: "Ready",
@@ -75,16 +75,16 @@ Panel {
   readonly property color fg: root.bar && root.bar.foreground ? root.bar.foreground : Color.foreground
   readonly property string appFont: root.bar && root.bar.fontFamily ? root.bar.fontFamily : Style.font.family
   property string lang: "eng"
-  /* text = OCR zurueck in Zeichen; image = nur den Bildbereich kopieren */
+  /* text = OCR back into characters; image = copy only the image region */
   property string mode: "text"
 
-  // --- Zustand ---
+  // --- State ---
   property var history: []
   property string lastText: ""
   property bool busy: false
   property string busyHint: ""
 
-  // --- Auswahl-Overlay-Zustand ---
+  // --- Selection overlay state ---
   property bool selecting: false
   property string fullPng: ""
   property real dpi: 1
@@ -98,26 +98,26 @@ Panel {
   readonly property string sdy: Quickshell.env("HOME") + "/.local/state/snipper"
 
   function refresh() {}
-  // BarWidget/shell: openFromHotkey noetig, damit summon/hotkey das Popup oeffnet.
+  // BarWidget/shell: openFromHotkey is needed so summon/hotkey can open the popup.
   function openFromHotkey() { open() }
 
-  /// Voll-Screenshot aufnehmen und die Auswahl-Oberflaeche zeigen.
+  /// Take a full screenshot and show the selection surface.
   function startSnip() {
     console.log("[snipper] startSnip() bar=" + (root.bar !== null))
-    root.close()                 // Popup zu, damit der Overlay frei liegt
+    root.close()                 // close the popup so the overlay is unobstructed
     root.busy = true
     root.fullPng = root.sdy + "/full.png"
-    // Capture NACH bar.run (detached) verlagern: grim schreibt aus dem
-    // Quickshell-Process-Kontext keine Datei (rc=0 aber leer). bar.run-Sub-
-    // prozesse schreiben bekanntermassen zuverlaessig. READY-Marker = fertig.
+    // Defer the capture to a detached bar.run subprocess: grim does not write a
+    // file from a Quickshell-Process context (rc=0 but empty). bar.run children
+    // write reliably. READY-marker = screenshot taken.
     if (root.bar && root.bar.run) {
-      root.bar.run('mkdir -p ' + root.sdy + '; rm -f ' + root.sdy + '/full.png ' + root.sdy + '/full.ready; ' +
+      root.bar.run('umask 077; mkdir -p ' + root.sdy + '; rm -f ' + root.sdy + '/full.png ' + root.sdy + '/full.ready; ' +
                    'grim -t png ' + root.sdy + '/full.png && touch ' + root.sdy + '/full.ready')
       root.busyHint = root.tr("capture")
       capTimer.running = true
       capTimer.restart()
     } else {
-      console.log("[snipper] kein bar.run!")
+      console.log("[snipper] no bar.run available!")
       root.busy = false
     }
   }
@@ -142,15 +142,15 @@ Panel {
         if (String(text || "").indexOf("READY") >= 0) {
           capTimer.running = false
           root.busy = false
-          root.selecting = true      // Vollbild-Overlay anzeigen
+          root.selecting = true      // show the full-screen overlay
           capImg.source = "file://" + root.fullPng
-          console.log("[snipper] overlay zeigen, fullPng=" + root.fullPng)
+          console.log("[snipper] show overlay, fullPng=" + root.fullPng)
         }
       }
     }
   }
 
-  /// Beim geladenen Vollbild den echten Scale-Faktor bestimmen (physical/logical).
+  /// Determine the real scale factor (physical/logical) once the full image is loaded.
   function recomputeDpi() {
     if (capImg.status === Image.Ready && selWin.width > 0) {
       root.dpr = capImg.sourceSize.width / selWin.width
@@ -158,7 +158,7 @@ Panel {
     }
   }
 
-  /// Laesst die Auswahl in das Vollbild schneiden + OCR laufen.
+  /// Cut the selection out of the full image and run OCR.
   function commitSelection() {
     var x0 = Math.min(root.selX0, root.selX1)
     var y0 = Math.min(root.selY0, root.selY1)
@@ -166,9 +166,9 @@ Panel {
     var h = Math.abs(root.selY1 - root.selY0)
     if (!isFinite(w) || !isFinite(h) || w < 4 || h < 4) { root.cancelSelect(); return }
 
-    // Umrechnung logical Overlay-Px -> Bild-Px, robust gegen NaN:
-    // Faktor = Bildbreite / Fenster(logisch)-breite. Fallback, falls das Bild
-    // noch nicht geladen ist.
+    // Convert logical overlay px -> image px, robust against NaN:
+    // factor = image width / window(logical) width. Fallback in case the image
+    // is not loaded yet.
     var sx = (capImg.sourceSize && capImg.sourceSize.width > 0) ? capImg.sourceSize.width : 1920
     var sy = (capImg.sourceSize && capImg.sourceSize.height > 0) ? capImg.sourceSize.height : 1080
     var sw = selWin.width > 0 ? selWin.width : 1
@@ -189,14 +189,14 @@ Panel {
     var script
     if (root.mode === "image") {
       script = [
-        'cd ' + root.sdy,
+        'umask 077; cd ' + root.sdy,
         crop + ' 2>>' + root.dbg,
         'wl-copy --type image/png < ocr.png 2>>' + root.dbg,
         'printf "IMG"'
       ].join("; ")
     } else {
       script = [
-        'cd ' + root.sdy,
+        'umask 077; cd ' + root.sdy,
         crop + ' 2>>' + root.dbg,
         't="$(tesseract ocr.png stdout -l ' + root.lang + ' 2>>' + root.dbg + ')"',
         'if [ -n "$t" ]; then printf "%s" "$t" | wl-copy; else wl-copy --type image/png < ocr.png; fi',
@@ -232,7 +232,7 @@ Panel {
           root.acceptResult(raw)
           root.notify(root.tr("txtCopied"))
         }
-        root.open()   // Popup wieder zeigen
+        root.open()   // reopen the popup
       }
     }
   }
@@ -243,7 +243,7 @@ Panel {
     root.persist()
   }
 
-  // --- Vollbild-Auswahl-Surface -------------------------------------------
+  // --- Fullscreen selection surface -----------------------------------------
   PanelWindow {
     id: selWin
     visible: root.selecting
@@ -261,7 +261,7 @@ Panel {
     }
     Rectangle {
       anchors.fill: parent
-      color: "#55000000"   // leicht abgedunkelt; Auswahl sticht heraus
+      color: "#55000000"   // slightly dimmed; selection stands out
     }
     MouseArea {
       id: selMouse
@@ -294,9 +294,19 @@ Panel {
     }
   }
 
-  // --- Verlauf -----------------------------------------------------------------
+  // --- History -----------------------------------------------------------------
+  // Least-privilege rule: never pass recognized/pasted screen text to child
+  // processes as a command-line argument. Arguments show up in the world-
+  // readable /proc/<pid>/cmdline of a child and leak whatever was on screen
+  // (often a password, recovery code, or token). Text is instead handed over
+  // *stdin* (same pattern Omarchy's network panel uses for secrets). Files it
+  // writes are created with umask 077 (owner-only).
   function copyText(t) {
-    if (root.bar && root.bar.run) root.bar.run("omarchy-clipboard-paste-text --copy-only " + shellQuote(t))
+    if (t === "") return
+    clipProc.textData = t
+    clipProc.command = ["bash", "-c",
+      'IFS= read -r -d "" d; printf "%s" "$d" | wl-copy']
+    clipProc.running = true
   }
   function clearHistory() {
     root.history = []
@@ -304,15 +314,36 @@ Panel {
   }
   function persist() {
     var file = Quickshell.env("HOME") + "/.local/state/snipper/history"
+    writeCmd.textData = root.history.join("\n")
     writeCmd.command = ["bash", "-c",
-        'mkdir -p "$(dirname "$1")" && printf "%s\\n" "${@:2}" > "$1".tmp && mv "$1".tmp "$1"',
-        "x", file ].concat(root.history)
+      'IFS= read -r -d "" d; umask 077; mkdir -p "$(dirname "$1")"; printf "%s" "$d" > "$1".tmp && mv "$1".tmp "$1"',
+      "x", file]
     writeCmd.running = true
   }
-  Process { id: writeCmd }
+
+  // Text on stdin -> wl-copy (argv-free). NUL delimiter: multi-line OCR text
+  // arrives whole without needing EOF, so the read never hangs.
+  Process {
+    id: clipProc
+    property string textData: ""
+    stdinEnabled: true
+    onStarted: {
+      write(textData + "\0")
+      textData = ""
+    }
+  }
+  Process {
+    id: writeCmd
+    property string textData: ""
+    stdinEnabled: true
+    onStarted: {
+      write(textData + "\0")
+      textData = ""
+    }
+  }
 
   Component.onCompleted: {
-    console.log("[snipper] Panel geladen, bar=" + (root.bar !== null))
+    console.log("[snipper] Panel loaded, bar=" + (root.bar !== null))
     loadCmd.command = ["bash", "-c",
       'test -f "$HOME/.local/state/snipper/history" && tail -n 12 "$HOME/.local/state/snipper/history"']
     loadCmd.running = true
@@ -332,8 +363,14 @@ Panel {
   }
   function shellQuote(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
   function clip(t) { return t.length > 44 ? t.slice(0, 41) + "\u2026" : t }
+  // Neutralize screen-derived text for AutoText rendering: escape &, <, > so it
+  // is never interpreted as rich text/HTML (no markup, no remote resource
+  // fetch inside the shell). Order matters: escape & first.
+  function plain(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  }
 
-  // --- Popup-UI -------------------------------------------------------------
+  // --- Popup UI ---------------------------------------------------------------
   KeyboardPanel {
     id: panel
     anchorItem: root.anchorItem
@@ -341,8 +378,8 @@ Panel {
     owner: root.barIdentity
     open: root.opened
     contentWidth: Style.space(320)
-    // Kein Scrollen auf dem ganzen Popup: Hoehe = natuerliche Inhaltsgroesse
-    // (fittedContentHeight). Nur Ergebnis-Text und History scrollen intern.
+    // No scrolling over the whole popup: height = natural content size
+    // (fittedContentHeight). Only result text and history scroll internally.
     contentHeight: panel.fittedContentHeight(panelColumn.implicitHeight)
 
     Column {
@@ -350,8 +387,8 @@ Panel {
       width: parent.width
       spacing: Style.space(8)
 
-        // ---- Hero-Zeile: grosses Cuttermesser-Icon + Titel/Status links,
-        //      Modus-Umschalter (Text/Bild) rechts.
+        // ---- Hero row: large cuttermesser icon + title/status left,
+        //      mode toggle (Text/Image) right.
         Item {
           width: parent.width
           height: Math.max(heroLeft.height, modeToggle.height)
@@ -438,7 +475,7 @@ Panel {
           onClicked: root.startSnip()
         }
 
-        // Haarlinien-Trenner (Wetter-Stil)
+        // Hairline divider (weather style)
         Rectangle {
           width: parent.width
           height: Style.spacing.hairline
@@ -446,7 +483,7 @@ Panel {
           opacity: 0.12
         }
 
-        // Sektions-Label "Detected" (klein, gesperrt, getoent wie Wetter)
+        // Section label "Detected" (small, letter-spaced, tinted like weather)
         Text {
           text: root.tr("detected").toUpperCase()
           color: Qt.darker(root.fg, 1.5)
@@ -455,8 +492,8 @@ Panel {
           font.letterSpacing: 1
         }
 
-        // Ergebnis-Feld: FESTE Hoehe + scrollbar (langen OCR-Text kappen statt das
-        // Popup zu verlaengern -> der unterste Button behaelt immer seinen Platz).
+        // Result box: FIXED height + scrollable (cap long OCR text instead of
+        // growing the popup -> the bottom-most button always keeps its place).
         Rectangle {
           id: resultBox
           width: parent.width
@@ -479,6 +516,7 @@ Panel {
               font.family: root.appFont
               font.pixelSize: Style.font.body
               wrapMode: Text.WordWrap
+              textFormat: Text.PlainText   // untrusted screen text: never rich text
               padding: Style.space(6)
             }
           }
@@ -507,9 +545,9 @@ Panel {
           font.letterSpacing: 1
         }
 
-        // History: feste Maximalhoehe + intern scrollbar -> der Inhalt laeuft
-        // nie aus der Box. Eigene schmale Track+Handle-Scrollbar rechts, die
-        // nur bei Ueberlauf erscheint und NICHT ueber den Text liegt.
+        // History: fixed max height + internally scrollable -> content never runs
+        // out of the box. A custom thin track+handle scrollbar on the right that
+        // only appears on overflow and never overlaps the text.
         Item {
           width: parent.width
           height: root.history.length > 0 ? Style.space(104) : 0
@@ -526,13 +564,17 @@ Panel {
             model: root.history
             delegate: Button {
               width: historyList.width
-              text: root.clip(modelData)
+              // The system Button renders its text with AutoText (the default). Since the
+              // history entries come from the screen (attacker-choosable), HTML-
+              // escape them here so they can never become rich text (no remote
+              // fetch).
+              text: root.plain(root.clip(modelData))
               leftAlign: true
-              onClicked: root.copyText(modelData)
+              onClicked: root.copyText(modelData)   // copies the ORIGINAL text
             }
           }
 
-          // Track: nur bei Ueberlauf, rechts im eigenen Bereich.
+          // Track: only on overflow, at the right in its own area.
           Rectangle {
             id: histTrack
             visible: historyList.contentHeight > historyList.height
@@ -543,7 +585,7 @@ Panel {
             radius: Style.space(2)
             color: Qt.darker(root.fg, 2.2)
           }
-          // Handle: folgt der Scroll-Position, nie ueber dem Text.
+          // Handle: follows the scroll position, never above the text.
           Rectangle {
             id: histHandle
             visible: historyList.contentHeight > historyList.height

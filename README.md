@@ -20,8 +20,7 @@ local OCR (`tesseract`).
   copied instead.
 - **Text / image mode**: toggle the extraction mode in the panel header
   (text = OCR, image = copy the raw region).
-- **Copy text**: re-copies the latest result
-  (`omarchy-clipboard-paste-text --copy-only`).
+- **Copy text**: re-copies the latest result to the clipboard (via `wl-copy`).
 - **History**: the last entries (persisted in
   `~/.local/state/snipper/history`), scrollable inside a fixed area; click an
   entry to re-copy it. "Clear history" empties it.
@@ -32,9 +31,11 @@ Built on Omarchy's standard bar-widget + `KeyboardPanel` structure.
 
 ## Requirements (present on Omarchy)
 
-- `omarchy-capture-screenshot` / `omarchy-capture-region` (Omarchy bins)
-- `grim`, `convert` (ImageMagick), `wl-copy` (Wayland clipboard)
+- `grim` — screen capture (Wayland)
+- `convert` (ImageMagick) — crop the selected region
+- `wl-copy` — Wayland clipboard
 - `tesseract` (OCR) — engine language via the panel `lang` (`eng` default)
+- `omarchy-notification-send` — status notifications (Omarchy bin)
 - German OCR: `sudo pacman -S tesseract-data-deu`, then set `lang` to
   `eng+deu` / `deu` in the panel.
 
@@ -114,18 +115,22 @@ before enabling):
 - `convert` (ImageMagick) — crop the selected region
 - `tesseract` — OCR, runs on your machine (text never leaves it)
 - `wl-copy` — put text/image on the clipboard
-- Omarchy bins: `omarchy-capture-screenshot` (via the bar), `omarchy-clipboard-paste-text`, `omarchy-notification-send`
+- `omarchy-notification-send` — status notifications (via the bar)
 
 **What it touches:**
 - Only files under `~/.local/state/snipper/` (history, a temp capture, a log).
 - No system directories, no `/etc`, no services, no autostart.
 
 **What it does NOT do:**
-- No network requests — no telemetry, no data leaves your machine.
+- No outbound network requests — no telemetry, no data leaves your machine.
+  Recognized text is rendered as *plain text* (never auto-interpreted as rich
+  text), so screen content cannot make the UI fetch a remote resource.
 - No `sudo`, no system changes, no persistent installs.
 - It never reads your secrets, keys, or tokens.
-- OCR output and history text are shell-quoted / passed via stdin, so
-  recognized or pasted text cannot inject shell commands.
+- Recognized/pasted text is handed to child commands over **stdin**, never as
+  a command-line argument — so it never appears in the world-readable
+  `/proc/<pid>/cmdline` and cannot inject shell commands. Every file the plugin
+  writes is created with `umask 077` (owner-only).
 
 **Review before enabling** (the whole plugin is ~5 small files):
 
@@ -133,7 +138,7 @@ before enabling):
 git clone https://github.com/slomo-b/omarchy-snipper && ls
 ```
 
-Releases are exact git tags (e.g. `v0.3.0`), so a reviewed version can be pulled
+Releases are exact git tags (e.g. `v0.3.1`), so a reviewed version can be pulled
 and compared. This mirrors Omarchy's own guidance: inspect the few files, then
 run `omarchy plugin add`.
 
